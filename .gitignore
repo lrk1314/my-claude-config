@@ -1,0 +1,55 @@
+# 敏感配置
+private/
+secrets/
+*.secret.*
+**/config.json
+!**/config.example.json
+!**/config.template.json
+
+# 环境变量
+.env
+.env.local
+
+# 个人信息
+CLAUDE.md
+!CLAUDE.template.md
+
+# MCP node_modules
+mcp-servers/**/node_modules/
+mcp-servers/**/*.jar
+mcp-servers/**/*.dll
+
+# 临时文件
+cache/
+debug/
+file-history/
+history.jsonl
+shell-snapshots/
+todos/
+tasks/
+telemetry/
+statsig/
+paste-cache/
+plans/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 日志文件
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 备份文件
+*.backup
+*.bak

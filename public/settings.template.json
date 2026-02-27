@@ -1,0 +1,27 @@
+{
+  "alwaysThinkingEnabled": true,
+  "env": {
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": 20000,
+    "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": 1,
+    "MAX_THINKING_TOKENS": 12000,
+    "DISABLE_TELEMETRY": 1,
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "DISABLE_ERROR_REPORTING": 1,
+    "ANTHROPIC_BASE_URL": "${ANTHROPIC_BASE_URL}",
+    "ANTHROPIC_AUTH_TOKEN": "${ANTHROPIC_AUTH_TOKEN}"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File \"%USERPROFILE%\\.claude\\hooks\\PathValidation.ps1\"",
+            "type": "command"
+          }
+        ],
+        "matcher": "Read|Write|Edit|Glob|mcp__acp__Read|mcp__acp__Write|mcp__acp__Edit|NotebookEdit"
+      }
+    ]
+  },
+  "model": "sonnet"
+}
