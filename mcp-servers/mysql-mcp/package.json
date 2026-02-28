@@ -1,0 +1,17 @@
+{
+  "name": "mysql-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for MySQL Database",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "mysql2": "^3.6.5"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

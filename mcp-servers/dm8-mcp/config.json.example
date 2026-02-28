@@ -1,0 +1,8 @@
+{
+  "connectionString": "jdbc:dm://localhost:5236/SYSDBA?user=SYSDBA&password=SYSDBA",
+  "jdbcDriverPath": "C:/DM8/drivers/DmJdbcDriver18.jar",
+  "注释": {
+    "connectionString": "DM8 JDBC 连接字符串",
+    "jdbcDriverPath": "DM8 JDBC 驱动 jar 文件的完整路径"
+  }
+}

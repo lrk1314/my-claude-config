@@ -1,0 +1,16 @@
+{
+  "name": "dm8-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for DM8 Database",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
