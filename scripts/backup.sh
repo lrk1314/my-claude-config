@@ -1,90 +1,103 @@
-#!/bin/bash
-# Claude Code 配置备份脚本
-# 用途：将当前 Claude Code 配置备份到项目的 private 目录
+#!/usr/bin/env bash
+# Claude Code + Codex 配置备份脚本（Linux/macOS）
 
-set -e
+set -euo pipefail
+shopt -s dotglob nullglob
 
-# 颜色定义
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# 配置路径
-CLAUDE_DIR="$HOME/.claude"
-BACKUP_DIR="./private"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+PUBLIC_SKILLS_DIR="${REPO_ROOT}/public/skills"
+BACKUP_DIR="${REPO_ROOT}/private"
+CLAUDE_BACKUP_DIR="${BACKUP_DIR}/claude"
+CODEX_BACKUP_DIR="${BACKUP_DIR}/codex"
+CUSTOM_SKILLS_DIR="${BACKUP_DIR}/custom-skills"
+MCP_CONFIGS_DIR="${BACKUP_DIR}/mcp-configs"
 
-echo -e "${BLUE}🔄 开始备份 Claude Code 配置...${NC}"
+CLAUDE_DIR="${HOME}/.claude"
+CODEX_DIR="${HOME}/.codex"
 
-# 检查 Claude 目录是否存在
-if [ ! -d "$CLAUDE_DIR" ]; then
-    echo -e "${YELLOW}⚠️  警告：Claude 配置目录不存在: $CLAUDE_DIR${NC}"
-    exit 1
+PUBLIC_SKILL_NAMES=()
+
+skill_is_public() {
+    local target="$1"
+    local item
+    for item in "${PUBLIC_SKILL_NAMES[@]}"; do
+        [[ "$item" == "$target" ]] && return 0
+    done
+    return 1
+}
+
+copy_file_if_exists() {
+    local src="$1"
+    local dst="$2"
+    local label="$3"
+
+    if [[ -f "$src" ]]; then
+        cp "$src" "$dst"
+        echo "  ✓ ${label}"
+    fi
+}
+
+sync_custom_skills_from() {
+    local src_root="$1"
+    local item
+    local skill_name
+    local dst
+
+    [[ -d "$src_root" ]] || return 0
+    mkdir -p "$CUSTOM_SKILLS_DIR"
+
+    for item in "$src_root"/*; do
+        [[ -d "$item" ]] || continue
+        skill_name="$(basename "$item")"
+
+        [[ "$skill_name" == .* ]] && continue
+        if skill_is_public "$skill_name"; then
+            continue
+        fi
+
+        dst="${CUSTOM_SKILLS_DIR}/${skill_name}"
+        rm -rf "$dst"
+        cp -R "$item" "$dst"
+        echo "  ✓ 自定义 skill: ${skill_name}"
+    done
+}
+
+for item in "${PUBLIC_SKILLS_DIR}"/*; do
+    [[ -d "$item" ]] || continue
+    PUBLIC_SKILL_NAMES+=("$(basename "$item")")
+done
+
+mkdir -p "$CLAUDE_BACKUP_DIR" "$CODEX_BACKUP_DIR" "$MCP_CONFIGS_DIR"
+
+echo -e "${BLUE}开始备份 Claude Code + Codex 配置...${NC}"
+
+if [[ -d "$CLAUDE_DIR" ]]; then
+    echo -e "${GREEN}备份 Claude Code 配置...${NC}"
+    copy_file_if_exists "${CLAUDE_DIR}/CLAUDE.md" "${CLAUDE_BACKUP_DIR}/CLAUDE.md" "CLAUDE.md"
+    copy_file_if_exists "${CLAUDE_DIR}/settings.json" "${CLAUDE_BACKUP_DIR}/settings.json" "settings.json"
+    copy_file_if_exists "${CLAUDE_DIR}/settings.local.json" "${CLAUDE_BACKUP_DIR}/settings.local.json" "settings.local.json"
+    copy_file_if_exists "${CLAUDE_DIR}/mcp-servers/dm8-mcp/config.json" "${MCP_CONFIGS_DIR}/dm8-config.json" "dm8-config.json"
+    copy_file_if_exists "${CLAUDE_DIR}/mcp-servers/mysql-mcp/config.json" "${MCP_CONFIGS_DIR}/mysql-config.json" "mysql-config.json"
+    sync_custom_skills_from "${CLAUDE_DIR}/skills"
+else
+    echo -e "${YELLOW}未找到 Claude Code 目录：${CLAUDE_DIR}${NC}"
 fi
 
-# 创建备份目录
-mkdir -p "$BACKUP_DIR"
-mkdir -p "$BACKUP_DIR/mcp-configs"
-mkdir -p "$BACKUP_DIR/custom-skills"
-
-echo -e "${GREEN}📦 备份核心配置文件...${NC}"
-
-# 备份核心配置
-if [ -f "$CLAUDE_DIR/CLAUDE.md" ]; then
-    cp "$CLAUDE_DIR/CLAUDE.md" "$BACKUP_DIR/"
-    echo "  ✓ CLAUDE.md"
+if [[ -d "$CODEX_DIR" ]]; then
+    echo -e "${GREEN}备份 Codex 配置...${NC}"
+    copy_file_if_exists "${CODEX_DIR}/AGENTS.md" "${CODEX_BACKUP_DIR}/AGENTS.md" "AGENTS.md"
+    copy_file_if_exists "${CODEX_DIR}/config.toml" "${CODEX_BACKUP_DIR}/config.toml" "config.toml"
+    sync_custom_skills_from "${CODEX_DIR}/skills"
+else
+    echo -e "${YELLOW}未找到 Codex 目录：${CODEX_DIR}${NC}"
 fi
 
-if [ -f "$CLAUDE_DIR/settings.json" ]; then
-    cp "$CLAUDE_DIR/settings.json" "$BACKUP_DIR/"
-    echo "  ✓ settings.json"
-fi
-
-if [ -f "$CLAUDE_DIR/settings.local.json" ]; then
-    cp "$CLAUDE_DIR/settings.local.json" "$BACKUP_DIR/"
-    echo "  ✓ settings.local.json"
-fi
-
-echo -e "${GREEN}🔌 备份 MCP 配置...${NC}"
-
-# 备份 MCP 配置
-if [ -f "$CLAUDE_DIR/mcp-servers/dm8-mcp/config.json" ]; then
-    cp "$CLAUDE_DIR/mcp-servers/dm8-mcp/config.json" "$BACKUP_DIR/mcp-configs/dm8-config.json"
-    echo "  ✓ dm8-config.json"
-fi
-
-if [ -f "$CLAUDE_DIR/mcp-servers/mysql-mcp/config.json" ]; then
-    cp "$CLAUDE_DIR/mcp-servers/mysql-mcp/config.json" "$BACKUP_DIR/mcp-configs/mysql-config.json"
-    echo "  ✓ mysql-config.json"
-fi
-
-echo -e "${GREEN}🎨 备份自定义 Skills...${NC}"
-
-# 备份自定义 skills
-if [ -d "$CLAUDE_DIR/skills/dm8" ]; then
-    cp -r "$CLAUDE_DIR/skills/dm8" "$BACKUP_DIR/custom-skills/"
-    echo "  ✓ dm8 skill"
-fi
-
-if [ -d "$CLAUDE_DIR/skills/mysql" ]; then
-    cp -r "$CLAUDE_DIR/skills/mysql" "$BACKUP_DIR/custom-skills/"
-    echo "  ✓ mysql skill"
-fi
-
-if [ -d "$CLAUDE_DIR/skills/translate-skills" ]; then
-    cp -r "$CLAUDE_DIR/skills/translate-skills" "$BACKUP_DIR/custom-skills/"
-    echo "  ✓ translate-skills"
-fi
-
-if [ -d "$CLAUDE_DIR/skills/elicitation" ]; then
-    cp -r "$CLAUDE_DIR/skills/elicitation" "$BACKUP_DIR/custom-skills/"
-    echo "  ✓ elicitation"
-fi
-
-echo -e "${GREEN}✅ 备份完成！${NC}"
-echo -e "${YELLOW}📝 备份位置: $BACKUP_DIR${NC}"
-echo ""
-echo -e "${BLUE}💡 提示：${NC}"
-echo "  - private/ 目录不会被提交到 git"
-echo "  - 请确保敏感信息安全"
-echo "  - 可以使用 git status 查看哪些文件会被提交"
+echo
+echo -e "${GREEN}备份完成。${NC}"
+echo -e "${YELLOW}输出目录：${BACKUP_DIR}${NC}"

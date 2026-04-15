@@ -2,6 +2,7 @@
   "permissions": {
     "allow": [
       "Bash(cat:*)",
+      "Bash(dir:*)",
       "Bash(node --version:*)",
       "Bash(npm install:*)",
       "Bash(npm init -y)",
@@ -43,5 +44,8 @@
       "Bash(bash -s:*)",
       "WebFetch(domain:clawhub.ai)"
     ]
+  },
+  "enabledPlugins": {
+    "codex@openai-codex": true
   }
 }

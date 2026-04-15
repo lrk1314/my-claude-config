@@ -1,0 +1,21 @@
+# Codex config template
+
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+disable_response_storage = true
+
+# 如果你使用自建 OpenAI-compatible 接口，取消下面这段注释并按需修改。
+# model_provider = "custom"
+#
+# [model_providers.custom]
+# name = "custom"
+# base_url = "http://127.0.0.1:15721/v1"
+# wire_api = "responses"
+# requires_openai_auth = true
+
+[windows]
+sandbox = "elevated"
+
+# 示例：把常用项目设为 trusted
+# [projects.'\\?\C:\Users\your_username']
+# trust_level = "trusted"

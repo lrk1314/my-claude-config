@@ -12,6 +12,9 @@ secrets/
 
 # 个人信息
 CLAUDE.md
+AGENTS.md
+config.toml
+auth.json
 !CLAUDE.template.md
 
 # MCP node_modules
@@ -49,6 +52,8 @@ desktop.ini
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.pyc
+__pycache__/
 
 # 备份文件
 *.backup

@@ -1,11 +1,39 @@
-# Claude Code 安装指南
+# 安装指南
 
 ## 前置要求
 
-- Node.js (v16 或更高版本)
-- npm 或 yarn
 - Git
+- Node.js 16+
 - Claude Code CLI
+- Codex CLI
+
+## 推荐目录布局
+
+```text
+private/
+├── claude/
+│   ├── CLAUDE.md
+│   ├── settings.json
+│   └── settings.local.json
+├── codex/
+│   ├── AGENTS.md
+│   └── config.toml
+├── custom-skills/
+└── mcp-configs/
+```
+
+说明：
+
+- `private/claude/` 只放 Claude Code 私有配置
+- `private/codex/` 只放 Codex 私有配置
+- `private/custom-skills/` 会被同时恢复到 `.claude/skills` 和 `.codex/skills`
+- `private/mcp-configs/` 放数据库等 MCP 配置
+
+兼容旧布局：
+
+- `private/CLAUDE.md`
+- `private/settings.json`
+- `private/settings.local.json`
 
 ## 安装步骤
 
@@ -16,68 +44,87 @@ git clone https://github.com/lrk1314/my-claude-config.git
 cd my-claude-config
 ```
 
-### 2. 准备私有配置
+### 2. 放入私有配置
 
-创建 `private/` 目录并添加你的配置文件：
+至少建议准备下面这些文件：
 
-```bash
-mkdir -p private/mcp-configs private/custom-skills
-```
+- `private/claude/CLAUDE.md`
+- `private/claude/settings.json`
+- `private/claude/settings.local.json`
+- `private/codex/AGENTS.md`
+- `private/codex/config.toml`
 
-将你的配置文件放入相应目录：
-- `private/CLAUDE.md` - 全局提示词
-- `private/settings.json` - 主配置
-- `private/settings.local.json` - 权限配置
-- `private/mcp-configs/` - MCP 配置文件
+如果暂时没有私有文件，恢复脚本会回退到 `public/` 下的模板文件。
 
-### 3. 运行恢复脚本
+### 3. 执行恢复
 
-**Linux/Mac:**
-```bash
-chmod +x scripts/restore.sh
-./scripts/restore.sh
-```
+Windows PowerShell：
 
-**Windows PowerShell:**
 ```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 .\scripts\restore.ps1
 ```
 
-### 4. 验证安装
+Linux/macOS：
 
 ```bash
-# 检查 Claude Code 配置
-ls ~/.claude
+chmod +x ./scripts/restore.sh
+./scripts/restore.sh
+```
 
-# 检查 MCP 服务器
+### 4. 安装 MCP 依赖
+
+如果你启用了数据库类 MCP，请在仓库根目录执行：
+
+```bash
+cd mcp-servers/mysql-mcp
+npm install
+
+cd ../dm8-mcp
+npm install
+```
+
+当前脚本默认把 MCP 服务器代码同步到 Claude Code 目录。Codex 如需引用同一套服务，直接指向仓库中的 `mcp-servers/` 即可。
+
+### 5. 验证结果
+
+检查两个目录是否已经就位：
+
+Windows PowerShell：
+
+```powershell
+Get-ChildItem $env:USERPROFILE\.claude
+Get-ChildItem $env:USERPROFILE\.codex
+```
+
+Linux/macOS：
+
+```bash
+ls -la ~/.claude
+ls -la ~/.codex
+```
+
+Claude Code 侧还可以继续检查：
+
+```bash
 claude mcp list
 ```
 
 ## 常见问题
 
-### Q: 恢复脚本报错怎么办？
-A: 检查以下几点：
-1. 确保 Node.js 已安装
-2. 确保 private/ 目录存在且包含必要文件
-3. 检查文件路径是否正确
+### 恢复脚本执行了，但没有私人配置
 
-### Q: MCP 服务器无法启动？
-A: 检查：
-1. config.json 配置是否正确
-2. 数据库连接是否可用
-3. JDBC 驱动是否存在
+先检查 `private/claude/`、`private/codex/` 是否真的有文件。没有的话，脚本会落模板而不是你的真实配置。
 
-### Q: 如何更新配置？
-A: 修改配置后运行：
-```bash
-./scripts/backup.sh
-git add .
-git commit -m "Update config"
-git push
-```
+### Codex 为什么没有同步 `.system`
+
+`.codex/skills/.system` 是本地系统技能，不应该进仓库，也不会通过本仓库恢复。
+
+### 共享 skills 和私有 skills 的区别是什么
+
+- `public/skills/`：版本化、公开、跨端共享
+- `private/custom-skills/`：私有、不提交、跨端恢复
 
 ## 下一步
 
-- 查看 [Skills 使用指南](skills-guide.md)
-- 查看 [MCP 配置指南](mcp-guide.md)
+- 阅读 [Skills 使用指南](skills-guide.md)
+- 阅读 [MCP 配置指南](mcp-guide.md)

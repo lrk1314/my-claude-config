@@ -1,56 +1,74 @@
-# Skills 目录
+# Shared Skills
 
-本目录包含可公开分享的通用 Skills。
+这里存放的是可以同时给 Claude Code 和 Codex 使用的共享 skills。
 
-## 目录结构
+## 使用原则
 
-```
-skills/
-├── README.md           # 本文件
-└── [skill-name]/       # 各个 skill 目录
-    ├── SKILL.md        # Skill 描述
-    ├── metadata.json   # 元数据
-    └── resources/      # 资源文件
-```
+- 只放可公开、可复用、可版本化的技能
+- 不放 token、私有地址、个人账号、公司内部敏感资料
+- 不放 `.system` 这类客户端自带系统技能
+- 生成物不要提交，例如 `__pycache__/`、`*.pyc`
 
-## 如何添加 Skill
+## 当前包含的技能
 
-1. 在此目录下创建新的 skill 文件夹
-2. 添加 SKILL.md 和 metadata.json
-3. 更新本 README.md
+### 架构与项目类
 
-## 注意事项
+- `miniprogram-architect`
+- `uhf-b-service-packaging`
+- `work-daily-report`
 
-- 只包含可公开分享的通用 skills
-- 个人定制的 skills 应放在 `private/custom-skills/`
-- 确保不包含敏感信息
+### 前端与设计类
 
-## 已包含的 Skills
+- `frontend-design`
+- `canvas-design`
+- `algorithmic-art`
+- `theme-factory`
+- `brand-guidelines`
 
-### 数据库操作
+### 文档与办公类
 
-#### DM8
-- **功能**: 达梦数据库操作工具
-- **文件**: `dm8/`
-- **说明**: 提供 DM8 数据库的查询、分析和管理功能
+- `docx`
+- `pdf`
+- `pptx`
+- `xlsx`
 
-#### MySQL
-- **功能**: MySQL 数据库操作工具
-- **文件**: `mysql/`
-- **说明**: 提供 MySQL 数据库的查询、分析和管理功能
+### 自动化与开发辅助
 
-### 工具类
+- `playwright-cli`
+- `webapp-testing`
+- `web-fetch`
+- `web-artifacts-builder`
+- `mcp-builder`
+- `skill-creator`
 
-#### Translate Skills
-- **功能**: 技能文档翻译工具
-- **文件**: `translate-skills/`
-- **说明**: 将英文技能文档翻译为中文，支持双语维护
+### 数据库与业务支持
 
-#### Elicitation
-- **功能**: 心理画像分析工具
-- **文件**: `elicitation/`
-- **说明**: 通过自然对话进行心理画像分析，运用叙事身份研究和动机性访谈技术
+- `dm8`
+- `mysql`
+- `translate-skills`
+- `elicitation`
+- `doc-coauthoring`
+- `internal-comms`
+
+### 其他基础技能
+
+- `00-getting-started`
+- `01-core`
+- `02-components`
+- `03-graphics`
+- `04-patterns`
+- `05-deployment`
+- `06-reference`
+- `99-evolution`
+- `slack-gif-creator`
+
+## 如何新增
+
+1. 在本目录下创建 skill 目录
+2. 至少提供 `SKILL.md`
+3. 如果有引用资料或脚本，把依赖文件一并提交
+4. 更新本文件
 
 ## 相关文档
 
-详细使用说明请查看 [Skills 使用指南](../docs/skills-guide.md)
+[Skills 使用指南](../docs/skills-guide.md)

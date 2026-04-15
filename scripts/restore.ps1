@@ -1,7 +1,5 @@
-# Claude Code 配置恢复脚本（Windows PowerShell）
-# 用途：将备份的配置恢复到新电脑的 Claude Code
+# Claude Code + Codex 配置恢复脚本（Windows PowerShell）
 
-# 颜色函数
 function Write-ColorOutput {
     param(
         [string]$Message,
@@ -10,125 +8,136 @@ function Write-ColorOutput {
     Write-Host $Message -ForegroundColor $Color
 }
 
-# 配置路径
-$CLAUDE_DIR = "$env:USERPROFILE\.claude"
-$BACKUP_DIR = ".\private"
-$PUBLIC_DIR = ".\public"
-
-Write-ColorOutput "🚀 开始恢复 Claude Code 配置..." "Blue"
-
-# 检查备份目录
-if (-not (Test-Path $BACKUP_DIR)) {
-    Write-ColorOutput "❌ 错误：备份目录不存在: $BACKUP_DIR" "Red"
-    Write-ColorOutput "💡 请先运行 backup.ps1 或手动创建 private\ 目录" "Yellow"
-    exit 1
+function Ensure-Directory {
+    param([string]$Path)
+    New-Item -ItemType Directory -Force -Path $Path | Out-Null
 }
 
-# 创建 Claude 目录（如果不存在）
-New-Item -ItemType Directory -Force -Path "$CLAUDE_DIR" | Out-Null
-New-Item -ItemType Directory -Force -Path "$CLAUDE_DIR\hooks" | Out-Null
-New-Item -ItemType Directory -Force -Path "$CLAUDE_DIR\skills" | Out-Null
-New-Item -ItemType Directory -Force -Path "$CLAUDE_DIR\mcp-servers" | Out-Null
+function Copy-DirectoryContents {
+    param(
+        [string]$Source,
+        [string]$Destination
+    )
 
-Write-ColorOutput "📦 复制公共配置..." "Green"
+    if (-not (Test-Path -LiteralPath $Source)) {
+        return
+    }
 
-# 复制 hooks
-if (Test-Path "$PUBLIC_DIR\hooks") {
-    Copy-Item -Path "$PUBLIC_DIR\hooks\*" -Destination "$CLAUDE_DIR\hooks\" -Recurse -Force -ErrorAction SilentlyContinue
-    Write-ColorOutput "  ✓ Hooks" "White"
-}
-
-# 复制公共 skills
-if (Test-Path "$PUBLIC_DIR\skills") {
-    Copy-Item -Path "$PUBLIC_DIR\skills\*" -Destination "$CLAUDE_DIR\skills\" -Recurse -Force -ErrorAction SilentlyContinue
-    Write-ColorOutput "  ✓ Public Skills" "White"
-}
-
-Write-ColorOutput "🔐 复制私有配置..." "Green"
-
-# 复制核心配置
-if (Test-Path "$BACKUP_DIR\CLAUDE.md") {
-    Copy-Item -Path "$BACKUP_DIR\CLAUDE.md" -Destination "$CLAUDE_DIR\" -Force
-    Write-ColorOutput "  ✓ CLAUDE.md" "White"
-} else {
-    Write-ColorOutput "  ⚠️  CLAUDE.md 不存在，跳过" "Yellow"
-}
-
-if (Test-Path "$BACKUP_DIR\settings.json") {
-    Copy-Item -Path "$BACKUP_DIR\settings.json" -Destination "$CLAUDE_DIR\" -Force
-    Write-ColorOutput "  ✓ settings.json" "White"
-} else {
-    Write-ColorOutput "  ⚠️  settings.json 不存在，使用模板" "Yellow"
-    if (Test-Path "$PUBLIC_DIR\settings.template.json") {
-        Copy-Item -Path "$PUBLIC_DIR\settings.template.json" -Destination "$CLAUDE_DIR\settings.json" -Force
+    Ensure-Directory -Path $Destination
+    $items = Get-ChildItem -Force -LiteralPath $Source -ErrorAction SilentlyContinue
+    foreach ($item in $items) {
+        Copy-Item -LiteralPath $item.FullName -Destination $Destination -Recurse -Force -ErrorAction SilentlyContinue
     }
 }
 
-if (Test-Path "$BACKUP_DIR\settings.local.json") {
-    Copy-Item -Path "$BACKUP_DIR\settings.local.json" -Destination "$CLAUDE_DIR\" -Force
-    Write-ColorOutput "  ✓ settings.local.json" "White"
-} else {
-    Write-ColorOutput "  ⚠️  settings.local.json 不存在，使用模板" "Yellow"
-    if (Test-Path "$PUBLIC_DIR\settings.local.template.json") {
-        Copy-Item -Path "$PUBLIC_DIR\settings.local.template.json" -Destination "$CLAUDE_DIR\settings.local.json" -Force
-    }
-}
+function Restore-File {
+    param(
+        [string[]]$Candidates,
+        [string]$Fallback,
+        [string]$Destination,
+        [string]$Label
+    )
 
-Write-ColorOutput "🔌 配置 MCP 服务器..." "Green"
-
-# 复制 MCP 服务器代码
-if (Test-Path ".\mcp-servers\dm8-mcp") {
-    Copy-Item -Path ".\mcp-servers\dm8-mcp" -Destination "$CLAUDE_DIR\mcp-servers\" -Recurse -Force
-    Write-ColorOutput "  ✓ dm8-mcp 代码" "White"
-
-    # 恢复配置
-    if (Test-Path "$BACKUP_DIR\mcp-configs\dm8-config.json") {
-        Copy-Item -Path "$BACKUP_DIR\mcp-configs\dm8-config.json" -Destination "$CLAUDE_DIR\mcp-servers\dm8-mcp\config.json" -Force
-        Write-ColorOutput "  ✓ dm8-mcp 配置" "White"
+    foreach ($candidate in $Candidates) {
+        if ($candidate -and (Test-Path -LiteralPath $candidate)) {
+            Copy-Item -LiteralPath $candidate -Destination $Destination -Force
+            Write-ColorOutput "  ✓ $Label" "White"
+            return
+        }
     }
 
-    # 安装依赖
-    Write-ColorOutput "  📦 安装 dm8-mcp 依赖..." "Blue"
-    Push-Location "$CLAUDE_DIR\mcp-servers\dm8-mcp"
-    npm install --silent
-    Pop-Location
-}
-
-if (Test-Path ".\mcp-servers\mysql-mcp") {
-    Copy-Item -Path ".\mcp-servers\mysql-mcp" -Destination "$CLAUDE_DIR\mcp-servers\" -Recurse -Force
-    Write-ColorOutput "  ✓ mysql-mcp 代码" "White"
-
-    # 恢复配置
-    if (Test-Path "$BACKUP_DIR\mcp-configs\mysql-config.json") {
-        Copy-Item -Path "$BACKUP_DIR\mcp-configs\mysql-config.json" -Destination "$CLAUDE_DIR\mcp-servers\mysql-mcp\config.json" -Force
-        Write-ColorOutput "  ✓ mysql-mcp 配置" "White"
+    if ($Fallback -and (Test-Path -LiteralPath $Fallback)) {
+        Copy-Item -LiteralPath $Fallback -Destination $Destination -Force
+        Write-ColorOutput "  ✓ $Label (template)" "Yellow"
+        return
     }
 
-    # 安装依赖
-    Write-ColorOutput "  📦 安装 mysql-mcp 依赖..." "Blue"
-    Push-Location "$CLAUDE_DIR\mcp-servers\mysql-mcp"
-    npm install --silent
-    Pop-Location
+    Write-ColorOutput "  ⚠ $Label 未找到" "Yellow"
 }
 
-Write-ColorOutput "🎨 恢复自定义 Skills..." "Green"
+$RepoRoot = Split-Path -Parent $PSScriptRoot
+$PublicDir = Join-Path $RepoRoot "public"
+$PrivateDir = Join-Path $RepoRoot "private"
+$ClaudePrivateDir = Join-Path $PrivateDir "claude"
+$CodexPrivateDir = Join-Path $PrivateDir "codex"
+$CustomSkillsDir = Join-Path $PrivateDir "custom-skills"
+$McpConfigsDir = Join-Path $PrivateDir "mcp-configs"
+$RepoMcpServersDir = Join-Path $RepoRoot "mcp-servers"
 
-# 恢复自定义 skills
-if (Test-Path "$BACKUP_DIR\custom-skills") {
-    Copy-Item -Path "$BACKUP_DIR\custom-skills\*" -Destination "$CLAUDE_DIR\skills\" -Recurse -Force -ErrorAction SilentlyContinue
-    Write-ColorOutput "  ✓ 自定义 Skills" "White"
+$ClaudeDir = Join-Path $env:USERPROFILE ".claude"
+$CodexDir = Join-Path $env:USERPROFILE ".codex"
+
+$ClaudeHooksDir = Join-Path $ClaudeDir "hooks"
+$ClaudeSkillsDir = Join-Path $ClaudeDir "skills"
+$ClaudeMcpDir = Join-Path $ClaudeDir "mcp-servers"
+$CodexSkillsDir = Join-Path $CodexDir "skills"
+
+Write-ColorOutput "开始恢复 Claude Code + Codex 配置..." "Blue"
+Write-Host ""
+
+Ensure-Directory -Path $ClaudeDir
+Ensure-Directory -Path $ClaudeHooksDir
+Ensure-Directory -Path $ClaudeSkillsDir
+Ensure-Directory -Path $ClaudeMcpDir
+Ensure-Directory -Path $CodexDir
+Ensure-Directory -Path $CodexSkillsDir
+
+Write-ColorOutput "恢复共享资源..." "Green"
+Copy-DirectoryContents -Source (Join-Path $PublicDir "hooks") -Destination $ClaudeHooksDir
+Copy-DirectoryContents -Source (Join-Path $PublicDir "skills") -Destination $ClaudeSkillsDir
+Copy-DirectoryContents -Source (Join-Path $PublicDir "skills") -Destination $CodexSkillsDir
+Copy-DirectoryContents -Source $CustomSkillsDir -Destination $ClaudeSkillsDir
+Copy-DirectoryContents -Source $CustomSkillsDir -Destination $CodexSkillsDir
+
+Write-ColorOutput "恢复 Claude Code 配置..." "Green"
+Restore-File -Candidates @(
+    (Join-Path $ClaudePrivateDir "CLAUDE.md"),
+    (Join-Path $PrivateDir "CLAUDE.md")
+) -Fallback (Join-Path $PublicDir "CLAUDE.template.md") -Destination (Join-Path $ClaudeDir "CLAUDE.md") -Label "CLAUDE.md"
+
+Restore-File -Candidates @(
+    (Join-Path $ClaudePrivateDir "settings.json"),
+    (Join-Path $PrivateDir "settings.json")
+) -Fallback (Join-Path $PublicDir "settings.template.json") -Destination (Join-Path $ClaudeDir "settings.json") -Label "settings.json"
+
+Restore-File -Candidates @(
+    (Join-Path $ClaudePrivateDir "settings.local.json"),
+    (Join-Path $PrivateDir "settings.local.json")
+) -Fallback (Join-Path $PublicDir "settings.local.template.json") -Destination (Join-Path $ClaudeDir "settings.local.json") -Label "settings.local.json"
+
+Write-ColorOutput "恢复 Codex 配置..." "Green"
+Restore-File -Candidates @(
+    (Join-Path $CodexPrivateDir "AGENTS.md")
+) -Fallback (Join-Path $PublicDir "AGENTS.template.md") -Destination (Join-Path $CodexDir "AGENTS.md") -Label "AGENTS.md"
+
+Restore-File -Candidates @(
+    (Join-Path $CodexPrivateDir "config.toml")
+) -Fallback (Join-Path $PublicDir "config.template.toml") -Destination (Join-Path $CodexDir "config.toml") -Label "config.toml"
+
+Write-ColorOutput "恢复 MCP 服务器代码..." "Green"
+Copy-DirectoryContents -Source $RepoMcpServersDir -Destination $ClaudeMcpDir
+
+$dm8Config = Join-Path $McpConfigsDir "dm8-config.json"
+$mysqlConfig = Join-Path $McpConfigsDir "mysql-config.json"
+
+if (Test-Path -LiteralPath $dm8Config) {
+    Ensure-Directory -Path (Join-Path $ClaudeMcpDir "dm8-mcp")
+    Copy-Item -LiteralPath $dm8Config -Destination (Join-Path $ClaudeMcpDir "dm8-mcp\config.json") -Force
+    Write-ColorOutput "  ✓ dm8-config.json" "White"
+}
+
+if (Test-Path -LiteralPath $mysqlConfig) {
+    Ensure-Directory -Path (Join-Path $ClaudeMcpDir "mysql-mcp")
+    Copy-Item -LiteralPath $mysqlConfig -Destination (Join-Path $ClaudeMcpDir "mysql-mcp\config.json") -Force
+    Write-ColorOutput "  ✓ mysql-config.json" "White"
 }
 
 Write-Host ""
-Write-ColorOutput "✅ 恢复完成！" "Green"
+Write-ColorOutput "恢复完成。" "Green"
+Write-Host "Claude Code: $ClaudeDir"
+Write-Host "Codex:       $CodexDir"
 Write-Host ""
-Write-ColorOutput "📝 请检查以下配置：" "Yellow"
-Write-Host "  1. API Token 是否正确 (settings.json)"
-Write-Host "  2. MCP 数据库连接是否可用"
-Write-Host "  3. Hooks 路径是否需要调整"
-Write-Host "  4. 环境变量是否配置正确"
-Write-Host ""
-Write-ColorOutput "💡 提示：" "Blue"
-Write-Host "  - 配置文件位置: $CLAUDE_DIR"
-Write-Host "  - 可以运行 'claude mcp list' 查看 MCP 状态"
-Write-Host "  - 如有问题，请查看文档: public\docs\"
+Write-ColorOutput "后续建议：" "Yellow"
+Write-Host "  1. 如需数据库 MCP，请在 mcp-servers 目录执行 npm install"
+Write-Host "  2. 检查 settings.json / config.toml 中的本地路径"
+Write-Host "  3. 用 claude mcp list 验证 Claude Code 侧 MCP"
