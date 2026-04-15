@@ -72,7 +72,7 @@ copy_dir_contents "${CUSTOM_SKILLS_DIR}" "${CLAUDE_DIR}/skills"
 copy_dir_contents "${CUSTOM_SKILLS_DIR}" "${CODEX_DIR}/skills"
 
 echo -e "${GREEN}恢复 Claude Code 配置...${NC}"
-restore_file "${CLAUDE_DIR}/CLAUDE.md" "${PUBLIC_DIR}/CLAUDE.template.md" "CLAUDE.md" \
+restore_file "${CLAUDE_DIR}/CLAUDE.md" "${PUBLIC_DIR}/CLAUDE.女仆.template.md" "CLAUDE.md" \
     "${CLAUDE_PRIVATE_DIR}/CLAUDE.md" \
     "${PRIVATE_DIR}/CLAUDE.md"
 restore_file "${CLAUDE_DIR}/settings.json" "${PUBLIC_DIR}/settings.template.json" "settings.json" \
@@ -83,7 +83,7 @@ restore_file "${CLAUDE_DIR}/settings.local.json" "${PUBLIC_DIR}/settings.local.t
     "${PRIVATE_DIR}/settings.local.json"
 
 echo -e "${GREEN}恢复 Codex 配置...${NC}"
-restore_file "${CODEX_DIR}/AGENTS.md" "${PUBLIC_DIR}/AGENTS.template.md" "AGENTS.md" \
+restore_file "${CODEX_DIR}/AGENTS.md" "${PUBLIC_DIR}/AGENTS.女仆.template.md" "AGENTS.md" \
     "${CODEX_PRIVATE_DIR}/AGENTS.md"
 restore_file "${CODEX_DIR}/config.toml" "${PUBLIC_DIR}/config.template.toml" "config.toml" \
     "${CODEX_PRIVATE_DIR}/config.toml"

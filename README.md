@@ -5,8 +5,8 @@
 ## 现在管理什么
 
 - `public/skills/`：Claude Code 和 Codex 共用的公开 skills
-- `public/CLAUDE.template.md`、`public/settings*.template.json`：Claude Code 模板
-- `public/AGENTS.template.md`、`public/config.template.toml`：Codex 模板
+- `public/CLAUDE.女仆.template.md`、`public/CLAUDE.猫娘.template.md`、`public/settings*.template.json`：Claude Code 模板
+- `public/AGENTS.女仆.template.md`、`public/AGENTS.猫娘.template.md`、`public/config.template.toml`：Codex 模板
 - `public/hooks/`：Claude Code 可复用 hooks
 - `mcp-servers/`：版本化管理的 MCP 服务器代码
 - `private/`：不进 Git 的个人配置、权限和私有技能
@@ -19,8 +19,10 @@ my-claude-config/
 ├── .gitignore
 ├── .env.example
 ├── public/
-│   ├── CLAUDE.template.md
-│   ├── AGENTS.template.md
+│   ├── CLAUDE.女仆.template.md
+│   ├── CLAUDE.猫娘.template.md
+│   ├── AGENTS.女仆.template.md
+│   ├── AGENTS.猫娘.template.md
 │   ├── settings.template.json
 │   ├── settings.local.template.json
 │   ├── config.template.toml
@@ -50,7 +52,8 @@ my-claude-config/
 ## 这次调整的重点
 
 - `public/skills/` 现在被视为共享 skill 仓库，不再区分 Claude 版和 Codex 版
-- 新增 `public/AGENTS.template.md` 和 `public/config.template.toml`，Codex 可以直接落模板
+- 默认提示词模板切换为 `public/AGENTS.女仆.template.md` 和 `public/CLAUDE.女仆.template.md`
+- 原有提示词模板已重命名为 `*.猫娘.template.md`，文件内容保持不变
 - 恢复脚本会把共享 skills 同时同步到 `~/.claude/skills` 和 `~/.codex/skills`
 - `C:\Users\lirun\.codex\skills\.system` 这类系统技能不纳入仓库，只保留你自己的共享技能
 - 新增同步入库的 skills：

@@ -93,7 +93,7 @@ Write-ColorOutput "恢复 Claude Code 配置..." "Green"
 Restore-File -Candidates @(
     (Join-Path $ClaudePrivateDir "CLAUDE.md"),
     (Join-Path $PrivateDir "CLAUDE.md")
-) -Fallback (Join-Path $PublicDir "CLAUDE.template.md") -Destination (Join-Path $ClaudeDir "CLAUDE.md") -Label "CLAUDE.md"
+) -Fallback (Join-Path $PublicDir "CLAUDE.女仆.template.md") -Destination (Join-Path $ClaudeDir "CLAUDE.md") -Label "CLAUDE.md"
 
 Restore-File -Candidates @(
     (Join-Path $ClaudePrivateDir "settings.json"),
@@ -108,7 +108,7 @@ Restore-File -Candidates @(
 Write-ColorOutput "恢复 Codex 配置..." "Green"
 Restore-File -Candidates @(
     (Join-Path $CodexPrivateDir "AGENTS.md")
-) -Fallback (Join-Path $PublicDir "AGENTS.template.md") -Destination (Join-Path $CodexDir "AGENTS.md") -Label "AGENTS.md"
+) -Fallback (Join-Path $PublicDir "AGENTS.女仆.template.md") -Destination (Join-Path $CodexDir "AGENTS.md") -Label "AGENTS.md"
 
 Restore-File -Candidates @(
     (Join-Path $CodexPrivateDir "config.toml")
